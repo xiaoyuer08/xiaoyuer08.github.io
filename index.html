@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>光影里的光遇</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=ZCOOL+XiaoWei&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --warm: #E8A44A;
+    --warm-light: #F5D89A;
+    --gold: #C8A050;
+    --gold-light: #E8D5A8;
+    --dark: #0B0D14;
+    --dark-soft: #121520;
+    --text: #F0ECE2;
+    --text-muted: #8A8698;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Noto Serif SC', serif;
+    background: var(--dark);
+    color: var(--text);
+    overflow-x: hidden;
+    line-height: 1.8;
+    cursor: default;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--dark); }
+  ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 2px; }
+
+  /* ===== LOADING SCREEN ===== */
+  .loader {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--dark);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 2rem;
+    transition: opacity 1s ease, visibility 1s ease;
+  }
+  .loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .loader-title {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    color: var(--warm);
+    letter-spacing: 0.3em;
+    opacity: 0;
+    animation: loaderFade 1.5s ease forwards;
+  }
+  .loader-bar {
+    width: 120px; height: 1px; background: rgba(200,160,80,0.2);
+    position: relative; overflow: hidden;
+    opacity: 0; animation: loaderFade 1.5s ease 0.3s forwards;
+  }
+  .loader-bar::after {
+    content: ''; position: absolute; left: -100%; top: 0;
+    width: 100%; height: 100%;
+    background: var(--warm);
+    animation: loaderSlide 2s ease-in-out infinite;
+  }
+  @keyframes loaderFade { to { opacity: 1; } }
+  @keyframes loaderSlide { 0% { left: -100%; } 100% { left: 100%; } }
+
+  /* Image fade-in on load */
+.cinematic-bg img, .mosaic-item img, .panoramic img { opacity: 0; transition: opacity 0.6s ease; }
+.cinematic-bg img.loaded, .mosaic-item img.loaded, .panoramic img.loaded { opacity: 1; }
+
+
+/* Blur-up loading */
+img[data-src] { filter: blur(20px); transform: scale(1.05); transition: filter 0.4s ease; }
+img[data-src].loaded { filter: blur(0); transform: scale(1); }
+
+/* ===== FLOATING PARTICLES ===== */
+  .particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .particle {
+    position: absolute;
+    width: 3px; height: 3px;
+    background: var(--warm);
+    border-radius: 50%;
+    opacity: 0;
+    animation: floatUp linear infinite;
+  }
+  @keyframes floatUp {
+    0% { opacity: 0; transform: translateY(100vh) scale(0); }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.3; }
+    100% { opacity: 0; transform: translateY(-10vh) scale(1); }
+  }
+
+  /* ===== NAV ===== */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 1.5rem 3rem;
+    display: flex; justify-content: space-between; align-items: center;
+    background: linear-gradient(to bottom, rgba(11,13,20,0.9), transparent);
+    transition: all 0.6s ease;
+    opacity: 0; animation: navIn 1s ease 2s forwards;
+  }
+  @keyframes navIn { to { opacity: 1; } }
+  nav.scrolled {
+    padding: 1rem 3rem;
+    background: rgba(11,13,20,0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(200,160,80,0.08);
+  }
+  .nav-brand {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 1.2rem; font-weight: 400;
+    color: var(--warm);
+    letter-spacing: 0.25em;
+  }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a {
+    color: var(--text-muted); text-decoration: none;
+    font-size: 0.78rem; letter-spacing: 0.12em;
+    transition: color 0.4s; position: relative;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0;
+    width: 0; height: 1px; background: var(--warm);
+    transition: width 0.3s;
+  }
+  .nav-links a:hover, .nav-links a.active { color: var(--warm); }
+  .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+  /* ===== HERO ===== */
+  .hero {
+    position: relative;
+    height: 100vh; min-height: 700px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .hero-bg { position: absolute; inset: 0; }
+  .hero-bg img {
+    width: 100%; height: 100%; object-fit: cover;
+    opacity: 0; animation: heroImgIn 2s ease 1.5s forwards;
+  }
+  @keyframes heroImgIn {
+    from { opacity: 0; transform: scale(1.15); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 40%, rgba(11,13,20,0.1) 0%, rgba(11,13,20,0.6) 70%),
+      linear-gradient(to bottom, rgba(11,13,20,0.4) 0%, rgba(11,13,20,0.2) 30%, rgba(11,13,20,0.1) 50%, rgba(11,13,20,0.7) 85%, rgba(11,13,20,1) 100%);
+  }
+  .hero-content { position: relative; z-index: 2; text-align: center; padding: 0 2rem; max-width: 800px; }
+  .hero-sub {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 0.85rem; letter-spacing: 0.5em;
+    color: var(--warm-light); text-transform: uppercase;
+    margin-bottom: 1.8rem;
+    opacity: 0; animation: fadeUp 1.2s ease 2.2s forwards;
+  }
+  .hero-title {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: clamp(3.5rem, 9vw, 8rem);
+    font-weight: 400; line-height: 1.15;
+    letter-spacing: 0.15em;
+    color: var(--text);
+    text-shadow: 0 0 80px rgba(232,164,74,0.3);
+    opacity: 0; animation: fadeUp 1.5s ease 2.5s forwards;
+  }
+  .hero-line {
+    display: block; width: 60px; height: 1px;
+    background: linear-gradient(to right, transparent, var(--warm), transparent);
+    margin: 2rem auto;
+    opacity: 0; animation: fadeUp 1.2s ease 2.8s forwards;
+  }
+  .hero-desc {
+    font-size: 1rem; color: var(--text-muted);
+    font-weight: 400; letter-spacing: 0.15em;
+    max-width: 500px; margin: 0 auto;
+    opacity: 0; animation: fadeUp 1.2s ease 3s forwards;
+  }
+  .hero-scroll {
+    position: absolute; bottom: 3rem; left: 50%;
+    transform: translateX(-50%); z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 0.8rem;
+    opacity: 0; animation: fadeUp 1.2s ease 3.5s forwards;
+  }
+  .hero-scroll span { display: block; font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.3em; }
+  .hero-scroll-line { width: 1px; height: 40px; background: linear-gradient(to bottom, var(--warm), transparent); animation: scrollBreath 2.5s ease-in-out infinite; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes scrollBreath { 0%, 100% { opacity: 0.2; transform: scaleY(0.5); } 50% { opacity: 0.8; transform: scaleY(1); } }
+
+  /* ===== CINEMATIC SECTIONS ===== */
+  .cinematic {
+    position: relative; min-height: 100vh;
+    display: flex; align-items: center;
+    overflow: hidden;
+  }
+  .cinematic-bg { position: absolute; inset: 0; }
+  .cinematic-bg img {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: brightness(0.85) saturate(1.1);
+    transition: transform 15s ease;
+  }
+  .cinematic:hover .cinematic-bg img { transform: scale(1.04); }
+  .cinematic-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(105deg, rgba(11,13,20,0.85) 0%, rgba(11,13,20,0.7) 35%, rgba(11,13,20,0.25) 60%, rgba(11,13,20,0.15) 80%, rgba(11,13,20,0.4) 100%);
+  }
+  .cinematic-content { position: relative; z-index: 2; max-width: 550px; padding: 6rem 5vw; }
+  .cinematic-number {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 0.7rem; letter-spacing: 0.4em;
+    color: var(--warm); opacity: 0.6;
+    margin-bottom: 2rem;
+  }
+  .cinematic-title {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 400; line-height: 1.35;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+  .cinematic-divider { width: 40px; height: 1px; background: var(--warm); margin-bottom: 1.5rem; opacity: 0.6; }
+  .cinematic-text { font-size: 0.92rem; color: var(--text-muted); line-height: 2.1; letter-spacing: 0.05em; font-weight: 400; }
+  .cinematic-tags { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 2rem; }
+  .ctag {
+    padding: 0.4rem 1rem;
+    border: 1px solid rgba(200,160,80,0.3);
+    border-radius: 2px; font-size: 0.72rem;
+    color: var(--warm-light); letter-spacing: 0.1em;
+  }
+
+  .cinematic.right .cinematic-overlay {
+    background: linear-gradient(255deg, rgba(11,13,20,0.85) 0%, rgba(11,13,20,0.7) 35%, rgba(11,13,20,0.25) 60%, rgba(11,13,20,0.15) 80%, rgba(11,13,20,0.4) 100%);
+  }
+  .cinematic.right .cinematic-content { margin-left: auto; text-align: right; }
+  .cinematic.right .cinematic-divider { margin-left: auto; }
+  .cinematic.right .cinematic-tags { justify-content: flex-end; }
+
+  .cinematic.center .cinematic-overlay {
+    background: radial-gradient(ellipse at center, rgba(11,13,20,0.15) 0%, rgba(11,13,20,0.7) 70%), linear-gradient(to bottom, rgba(11,13,20,0.3) 0%, rgba(11,13,20,0.6) 100%);
+  }
+  .cinematic.center .cinematic-content { max-width: 600px; margin: 0 auto; text-align: center; }
+  .cinematic.center .cinematic-divider { margin-left: auto; margin-right: auto; }
+  .cinematic.center .cinematic-tags { justify-content: center; }
+
+  /* ===== MOSAIC ===== */
+  .mosaic { position: relative; padding: 0; overflow: hidden; }
+  .mosaic-header { text-align: center; padding: 6rem 2rem 4rem; max-width: 700px; margin: 0 auto; }
+  .mosaic-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 50vh 50vh; }
+  .mosaic-item { position: relative; overflow: hidden; cursor: pointer; }
+  .mosaic-item img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 1.2s ease, filter 0.6s ease;
+    filter: brightness(0.85) saturate(1.1);
+  }
+  .mosaic-item:hover img { transform: scale(1.08); filter: brightness(1) saturate(1.2); }
+  .mosaic-item:nth-child(1) { grid-column: span 2; }
+  .mosaic-item:nth-child(4) { grid-column: span 2; }
+  .mosaic-item-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(11,13,20,0.5) 0%, transparent 50%); transition: background 0.5s; }
+  .mosaic-item:hover .mosaic-item-overlay { background: linear-gradient(to top, rgba(11,13,20,0.3) 0%, transparent 40%); }
+  .mosaic-item-label {
+    position: absolute; bottom: 2rem; left: 2rem;
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 1.1rem; letter-spacing: 0.15em;
+    color: var(--text); opacity: 0;
+    transform: translateY(15px);
+    transition: all 0.5s ease;
+  }
+  .mosaic-item:hover .mosaic-item-label { opacity: 1; transform: translateY(0); }
+  .mosaic-item-tag { display: block; font-size: 0.65rem; color: var(--warm); letter-spacing: 0.25em; margin-top: 0.3rem; opacity: 0.7; }
+
+  /* ===== QUOTE SECTION ===== */
+  .quote-section {
+    position: relative; min-height: 70vh;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--dark-soft); overflow: hidden;
+  }
+  .quote-glow {
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(200,160,80,0.08) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: glowPulse 6s ease-in-out infinite;
+  }
+  @keyframes glowPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+    50% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+  }
+  .quote-content { position: relative; z-index: 2; text-align: center; max-width: 700px; padding: 4rem 2rem; }
+  .quote-mark { font-family: 'ZCOOL XiaoWei', serif; font-size: 4rem; color: var(--warm); opacity: 0.3; line-height: 1; margin-bottom: 1rem; }
+  .quote-text {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: clamp(1.3rem, 3vw, 2rem);
+    letter-spacing: 0.15em; line-height: 2;
+    color: var(--text); margin-bottom: 2rem;
+  }
+  .quote-author { font-size: 0.8rem; color: var(--warm); letter-spacing: 0.3em; }
+
+  /* ===== PANORAMIC ===== */
+  .panoramic { position: relative; height: 60vh; min-height: 400px; overflow: hidden; }
+  .panoramic img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; transition: transform 12s ease; }
+  .panoramic:hover img { transform: scale(1.03); }
+  .panoramic-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, var(--dark) 0%, transparent 20%, transparent 80%, var(--dark) 100%), linear-gradient(to right, rgba(11,13,20,0.3) 0%, transparent 25%, transparent 75%, rgba(11,13,20,0.3) 100%);
+  }
+  .panoramic-text { position: absolute; bottom: 3rem; left: 50%; transform: translateX(-50%); z-index: 2; text-align: center; white-space: nowrap; }
+  .panoramic-text p {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    letter-spacing: 0.3em; color: var(--warm-light);
+    text-shadow: 0 0 30px rgba(0,0,0,0.8);
+  }
+
+  /* ===== FOOTER ===== */
+  footer { position: relative; padding: 6rem 3rem 3rem; text-align: center; background: var(--dark); }
+  .footer-glow { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 300px; height: 200px; background: radial-gradient(ellipse, rgba(200,160,80,0.06) 0%, transparent 70%); pointer-events: none; }
+  .footer-symbol { font-size: 1.2rem; color: var(--warm); margin-bottom: 1.5rem; opacity: 0.4; letter-spacing: 0.5em; }
+  .footer-brand { font-family: 'ZCOOL XiaoWei', serif; font-size: 1.6rem; color: var(--warm); letter-spacing: 0.2em; margin-bottom: 1rem; }
+  .footer-text { font-size: 0.78rem; color: var(--text-muted); letter-spacing: 0.15em; line-height: 2.2; }
+  .footer-line { width: 30px; height: 1px; background: var(--warm); opacity: 0.3; margin: 2rem auto 1.5rem; }
+  .footer-copy { font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.1em; opacity: 0.5; }
+
+  /* ===== REVEAL ===== */
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity 1s ease, transform 1s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 1024px) {
+    .cinematic-content { padding: 4rem 3vw; }
+    .mosaic-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: 40vh 40vh 40vh; }
+    .mosaic-item:nth-child(1) { grid-column: span 2; }
+    .mosaic-item:nth-child(4) { grid-column: span 1; }
+  }
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .cinematic { min-height: 85vh; }
+    .cinematic-overlay, .cinematic.right .cinematic-overlay {
+      background: linear-gradient(to bottom, rgba(11,13,20,0.5) 0%, rgba(11,13,20,0.85) 50%, rgba(11,13,20,0.95) 100%) !important;
+    }
+    .cinematic.right .cinematic-content { margin-left: 0; text-align: left; }
+    .cinematic.right .cinematic-divider { margin-left: 0; }
+    .cinematic.right .cinematic-tags { justify-content: flex-start; }
+    .cinematic-content { padding: 3rem 5vw; }
+    .mosaic-grid { grid-template-columns: 1fr; grid-template-rows: repeat(5, 40vh); }
+    .mosaic-item:nth-child(1), .mosaic-item:nth-child(4) { grid-column: span 1; }
+    .panoramic { height: 45vh; min-height: 300px; }
+    .panoramic-text { white-space: normal; max-width: 90%; }
+    .quote-section { min-height: 55vh; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div class="loader" id="loader">
+  <div class="loader-title">光影里的光遇</div>
+  <div class="loader-bar"></div>
+</div>
+
+<!-- FLOATING PARTICLES -->
+<div class="particles" id="particles"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-brand">光遇 · SKY</div>
+  <ul class="nav-links">
+    <li><a href="#sunset">暮色</a></li>
+    <li><a href="#companions">同行</a></li>
+    <li><a href="#gaze">凝望</a></li>
+    <li><a href="#mosaic">光影</a></li>
+    <li><a href="#stillness">静谧</a></li>
+    <li><a href="#journey">旅途</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg">
+    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABsSFBcUERsXFhceHBsgKEIrKCUlKFE6PTBCYFVlZF9VXVtqeJmBanGQc1tdhbWGkJ6jq62rZ4C8ybqmx5moq6T/2wBDARweHigjKE4rK06kbl1upKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKT/wAARCAAIABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwBRqEbxgRwqox85ZsCoJbxRlY0UhR15x+FFFYWszouynJcHdyo/KiiitCLs/9k="" alt="光遇日落" loading="eager" data-src="images/img_01.jpg">
+  </div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="hero-sub">LIGHT MEETS SHADOW</p>
+    <h1 class="hero-title">光影里的光遇</h1>
+    <div class="hero-line"></div>
+    <p class="hero-desc">在光与影的交界处，每一个灵魂都在寻找属于自己的光</p>
+  </div>
+  <div class="hero-scroll">
+    <span>SCROLL</span>
+    <div class="hero-scroll-line"></div>
+  </div>
+</section>
+
+<!-- CINEMATIC 1: Sunset -->
+<section class="cinematic" id="sunset">
+  <div class="cinematic-bg"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABsSFBcUERsXFhceHBsgKEIrKCUlKFE6PTBCYFVlZF9VXVtqeJmBanGQc1tdhbWGkJ6jq62rZ4C8ybqmx5moq6T/2wBDARweHigjKE4rK06kbl1upKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKT/wAARCAAUABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwAsv3sBXjcODxzTjbHPTNR2hJmJidcDqxBH9auXDy7iA8IH0Irlcmnoddk1qVHjG75UOKKQtdA4SSNR6YzRV3YWRWt3KQ8dzzT5ZXLE5ooq0veM2/dEZyTRRRQhs//Z"" alt="日落海港" loading="lazy" data-src="images/img_02.jpg"></div>
+  <div class="cinematic-overlay"></div>
+  <div class="cinematic-content reveal">
+    <div class="cinematic-number">壹 · 暮色</div>
+    <h2 class="cinematic-title">暮色里的归途</h2>
+    <div class="cinematic-divider"></div>
+    <p class="cinematic-text">每一次日暮，都是光与大地最后的拥抱。金色的余晖洒满海面，孤独的身影站在码头尽头，目送太阳沉入远方的轮廓。那些漂浮在水面的光点，像是记忆中未曾说出的话语，轻轻荡漾。</p>
+    <div class="cinematic-tags">
+      <span class="ctag">长桥</span>
+      <span class="ctag">黄昏</span>
+      <span class="ctag">孤独</span>
+    </div>
+  </div>
+</section>
+
+<!-- PANORAMIC -->
+<div class="panoramic">
+  <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABsSFBcUERsXFhceHBsgKEIrKCUlKFE6PTBCYFVlZF9VXVtqeJmBanGQc1tdhbWGkJ6jq62rZ4C8ybqmx5moq6T/2wBDARweHigjKE4rK06kbl1upKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKT/wAARCAAJABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwCrEIwhYnJFXbe0jeEHzSjOSqhuQSBWc33R9RVmf7kf1P8AKsZHbbQc1tFnkjn3oqn2FFOz7iuux//Z"" alt="秋千黄昏" loading="lazy" data-src="images/img_03.jpg">
+  <div class="panoramic-overlay"></div>
+  <div class="panoramic-text reveal"><p>时光在秋千上轻轻摇晃</p></div>
+</div>
+
+<!-- CINEMATIC 2: Companions (Right) -->
+<section class="cinematic right" id="companions">
+  <div class="cinematic-bg"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABsSFBcUERsXFhceHBsgKEIrKCUlKFE6PTBCYFVlZF9VXVtqeJmBanGQc1tdhbWGkJ6jq62rZ4C8ybqmx5moq6T/2wBDARweHigjKE4rK06kbl1upKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKT/wAARCAAUABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDKsVTzxvz7fWtG/wBPlVWdioJGSMjis23G4Ficsv3cnpiruoag0kWwIACvLZ561zyWpstjMbCnB3Z79qKllgYP2b3FFXdEWK4lYAdPyqTzTKDuVRz2GMUUU2AKAyjIzjiiiikUj//Z"" alt="石阶上的相遇" loading="lazy" data-src="images/img_04.jpg"></div>
+  <div class="cinematic-overlay"></div>
+  <div class="cinematic-content reveal">
+    <div class="cinematic-number">贰 · 同行</div>
+    <h2 class="cinematic-title">在石阶上相遇</h2>
+    <div class="cinematic-divider"></div>
+    <p class="cinematic-text">阳光穿过古老的石拱门，照在两个小小的身影上。一个仰望，一个远眺。在遗迹的角落里，一朵烛火安静地燃烧着——那是他们第一次相遇的地方。光，总是从最意想不到的缝隙中照进来。</p>
+    <div class="cinematic-tags">
+      <span class="ctag">拱门</span>
+      <span class="ctag">清晨</span>
+      <span class="ctag">相遇</span>
+    </div>
+  </div>
+</section>
+
+<!-- QUOTE SECTION 1 -->
+<section class="quote-section">
+  <div class="quote-glow"></div>
+  <div class="quote-content reveal">
+    <div class="quote-mark">"</div>
+    <p class="quote-text">在这片被遗忘的天空之国里，光是我们唯一的语言。伸出你的手，便能照亮彼此前行的路。</p>
+    <p class="quote-author">—— 光遇 · 先祖寄语</p>
+  </div>
+</section>
+
+<!-- CINEMATIC 3: Cliff Gaze -->
+<section class="cinematic" id="gaze">
+  <div class="cinematic-bg"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABsSFBcUERsXFhceHBsgKEIrKCUlKFE6PTBCYFVlZF9VXVtqeJmBanGQc1tdhbWGkJ6jq62rZ4C8ybqmx5moq6T/2wBDARweHigjKE4rK06kbl1upKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKT/wAARCAALABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwC4BGwJDrgdaidUDEEgDHWqEbHy25rNuWKXOEOBwcCsYwfc7JTtZm7ui7tk0Vgb3/vH86KvlI9r5H//2Q=="" alt="崖边白羽" loading="lazy" data-src="images/img_05.jpg"></div>
+  <div class="cinematic-overlay"></div>
+  <div class="cinematic-content reveal">
+    <div class="cinematic-number">叁 · 凝望</div>
+    <h2 class="cinematic-title">崖边白羽</h2>
+    <div class="cinematic-divider"></div>
+    <p class="cinematic-text">白斗篷的孩子立于崖边，与落日久久对望。风掀起斗篷，像一面投降的旗，向这辽阔而温柔的人间。她不言，却已把整个黄昏收进了眼睛。</p>
+    <div class="cinematic-tags">
+      <span class="ctag">悬崖</span>
+      <span class="ctag">黄昏</span>
+      <span class="ctag">凝望</span>
+    </div>
+  </div>
+</section>
+
+<!-- MOSAIC -->
+<section class="mosaic" id="mosaic">
+  <div class="mosaic-header reveal">
+    <div class="cinematic-number" style="text-align:center">肆 · 光影</div>
+    <h2 class="cinematic-title" style="text-align:center">光影瞬间</h2>
+    <p class="cinematic-text" style="text-align:center;max-width:500px;margin:1.5rem auto 0;">那些来不及说出口的，都被光悄悄收进了画框。</p>
+  </div>
+  <div class="mosaic-grid">
+    <div class="mosaic-item">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABsSFBcUERsXFhceHBsgKEIrKCUlKFE6PTBCYFVlZF9VXVtqeJmBanGQc1tdhbWGkJ6jq62rZ4C8ybqmx5moq6T/2wBDARweHigjKE4rK06kbl1upKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKT/wAARCAAIABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwBRqEbxgRwqox85ZsCoJbxRlY0UhR15x+FFFYWszouynJcHdyo/KiiitCLs/9k="" loading="lazy" alt="烛火黄昏" loading="lazy" data-src="images/img_06.jpg">
+      <div class="mosaic-item-overlay"></div>
+      <div class="mosaic-item-label">烛火黄昏<span class="mosaic-item-tag">CANDLE · DUSK</span></div>
+    </div>
+    <div class="mosaic-item">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABsSFBcUERsXFhceHBsgKEIrKCUlKFE6PTBCYFVlZF9VXVtqeJmBanGQc1tdhbWGkJ6jq62rZ4C8ybqmx5moq6T/2wBDARweHigjKE4rK06kbl1upKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKT/wAARCAAJABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwB0N550zr1b7y1Vukjjd5t5Xaeh7n2qvY/8fsf4/wAqfrf3ovoawUUpWR0OV4tjDdI3zMck+o6UVQFFa8iMfaM//9k="" loading="lazy" alt="码头并肩" loading="lazy" data-src="images/img_07.jpg">
+      <div class="mosaic-item-overlay"></div>
+      <div class="mosaic-item-label">码头并肩<span class="mosaic-item-tag">DOCK · GOLD</span></div>
+    </div>
+    <div class="mosaic-item">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABsSFBcUERsXFhceHBsgKEIrKCUlKFE6PTBCYFVlZF9VXVtqeJmBanGQc1tdhbWGkJ6jq62rZ4C8ybqmx5moq6T/2wBDARweHigjKE4rK06kbl1upKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKT/wAARCAAJABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDJslUSCRxlFI/E1f1a4S5K425Re3pVOL/j0i+rf0oP32+h/lUWu7lFNuvaipj0H0oq7E3P/9k="" loading="lazy" alt="石阶穿光" loading="lazy" data-src="images/img_08.jpg">
+      <div class="mosaic-item-overlay"></div>
+      <div class="mosaic-item-label">石阶穿光<span class="mosaic-item-tag">STEPS · DAWN</span></div>
+    </div>
+    <div class="mosaic-item">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABsSFBcUERsXFhceHBsgKEIrKCUlKFE6PTBCYFVlZF9VXVtqeJmBanGQc1tdhbWGkJ6jq62rZ4C8ybqmx5moq6T/2wBDARweHigjKE4rK06kbl1upKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKT/wAARCAAJABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwCW0XZM8cQ3ow+YKwwPfNS/Zo95zEzEdty8/rVXTf8AVzfQVJ/GPrXZFPucsmuw/YpJLWpkJ/iZgSf1oqJerfWinZ9xXP/Z"" loading="lazy" alt="夜晚古道" loading="lazy" data-src="images/img_09.jpg">
+      <div class="mosaic-item-overlay"></div>
+      <div class="mosaic-item-label">暮光古道<span class="mosaic-item-tag">PATH · NIGHT</span></div>
+    </div>
+    <div class="mosaic-item">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABsSFBcUERsXFhceHBsgKEIrKCUlKFE6PTBCYFVlZF9VXVtqeJmBanGQc1tdhbWGkJ6jq62rZ4C8ybqmx5moq6T/2wBDARweHigjKE4rK06kbl1upKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKT/wAARCAAJABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwBbW5sjgONv4Gpro28iFl3DHHJxmsRKn/5Z1LjZ3udCd0JIBvOMf99CiqzdaK0uzKyP/9k="" loading="lazy" alt="阔蓝长桥" loading="lazy" data-src="images/img_10.jpg">
+      <div class="mosaic-item-overlay"></div>
+      <div class="mosaic-item-label">阔蓝之下<span class="mosaic-item-tag">PIER · BLUE</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CINEMATIC 4: Lotus Pond (Center) -->
+<section class="cinematic center" id="stillness">
+  <div class="cinematic-bg"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABsSFBcUERsXFhceHBsgKEIrKCUlKFE6PTBCYFVlZF9VXVtqeJmBanGQc1tdhbWGkJ6jq62rZ4C8ybqmx5moq6T/2wBDARweHigjKE4rK06kbl1upKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKT/wAARCAAJABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDGjZCcnIPr2q/aPG8mBGD67jxWdB9/8KsWP3vzpszL9xeSQuFhmcLjOOuD9aKot940UcqDmZ//2Q=="" alt="莲池静卧" loading="lazy" data-src="images/img_11.jpg"></div>
+  <div class="cinematic-overlay"></div>
+  <div class="cinematic-content reveal">
+    <div class="cinematic-number">伍 · 静谧</div>
+    <h2 class="cinematic-title">莲池静卧</h2>
+    <div class="cinematic-divider"></div>
+    <p class="cinematic-text">躺卧于荷瓣之上，世界静谧如初生。光从叶缝漏下，落成金粉，而你的呼吸，与水波同频。在此刻，连时间也放轻了脚步。</p>
+    <div class="cinematic-tags">
+      <span class="ctag">莲池</span>
+      <span class="ctag">正午</span>
+      <span class="ctag">归宁</span>
+    </div>
+  </div>
+</section>
+
+<!-- PANORAMIC 2 -->
+<div class="panoramic">
+  <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABsSFBcUERsXFhceHBsgKEIrKCUlKFE6PTBCYFVlZF9VXVtqeJmBanGQc1tdhbWGkJ6jq62rZ4C8ybqmx5moq6T/2wBDARweHigjKE4rK06kbl1upKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKT/wAARCAALABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwC5MouUWRMEEc46CqosmdiAMYGc1FcXc8F3IIn2g9sCojqF1lh5vXr8o/wrrU2lZHK6d3c0Y9Ni8tdyFmx8x3d6KsSSMu0KcDHaip5pMrlij//Z"" alt="云端独坐" loading="lazy" data-src="images/img_12.jpg">
+  <div class="panoramic-overlay"></div>
+  <div class="panoramic-text reveal"><p>立于云端，与风平起平坐</p></div>
+</div>
+
+<!-- CINEMATIC 5: Journey (Right) -->
+<section class="cinematic right" id="journey">
+  <div class="cinematic-bg"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABsSFBcUERsXFhceHBsgKEIrKCUlKFE6PTBCYFVlZF9VXVtqeJmBanGQc1tdhbWGkJ6jq62rZ4C8ybqmx5moq6T/2wBDARweHigjKE4rK06kbl1upKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKT/wAARCAAJABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDDtQxY7RnjJq5NJCLfC7/OxnkDbVaw6/iP51LqH+sP1pczvYvlXLcoNjJopp60UyD/2Q=="" alt="夜路灯塔" loading="lazy" data-src="images/img_13.jpg"></div>
+  <div class="cinematic-overlay"></div>
+  <div class="cinematic-content reveal">
+    <div class="cinematic-number">陆 · 旅途</div>
+    <h2 class="cinematic-title">夜路灯塔</h2>
+    <div class="cinematic-divider"></div>
+    <p class="cinematic-text">夜路漫长，幸有远处灯塔，与身旁的你。光在远处指引方向，你在近处给予温度。于是黑夜不再是黑夜，而是被星火点亮的、漫长的温柔。</p>
+    <div class="cinematic-tags">
+      <span class="ctag">古道</span>
+      <span class="ctag">深夜</span>
+      <span class="ctag">安然</span>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL QUOTE -->
+<section class="quote-section">
+  <div class="quote-glow"></div>
+  <div class="quote-content reveal">
+    <div class="quote-mark">"</div>
+    <p class="quote-text">每一次相遇都是一场光的旅途。愿你的心中永远有光，永远有人同行。</p>
+    <p class="quote-author">—— 光遇 · 伊甸之光</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-glow"></div>
+  <div class="footer-symbol">✦</div>
+  <div class="footer-brand">光遇 · SKY</div>
+  <div class="footer-line"></div>
+  <p class="footer-text">光与影交织的世界，每一步都是一段故事</p>
+  <p class="footer-copy">光影里的光遇 &copy; 2026</p>
+</footer>
+
+<script>
+// Loading screen
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('loader').classList.add('hidden');
+  }, 400);
+});
+
+// Floating particles
+const particlesContainer = document.getElementById('particles');
+for (let i = 0; i < 30; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  p.style.left = Math.random() * 100 + '%';
+  p.style.width = (Math.random() * 3 + 1) + 'px';
+  p.style.height = p.style.width;
+  p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+  p.style.animationDelay = (Math.random() * 15) + 's';
+  p.style.opacity = Math.random() * 0.5 + 0.1;
+  particlesContainer.appendChild(p);
+}
+
+// Nav scroll effect + active link
+const nav = document.getElementById('nav');
+const links = document.querySelectorAll('.nav-links a');
+const secs = document.querySelectorAll('section[id]');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 100);
+  const y = window.scrollY + window.innerHeight * 0.4;
+  let cur = '';
+  secs.forEach(s => { if (y > s.offsetTop) cur = s.id; });
+  links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur));
+});
+
+// Reveal on scroll
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -50px 0px' });
+reveals.forEach(el => observer.observe(el));
+
+// Smooth scroll for nav links
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+// Parallax effect on cinematic backgrounds
+const cinematicBgs = document.querySelectorAll('.cinematic-bg img');
+let ticking = false;
+window.addEventListener('scroll', () => {
+  if (!ticking) {
+    requestAnimationFrame(() => {
+      cinematicBgs.forEach(img => {
+        const section = img.closest('.cinematic');
+        const rect = section.getBoundingClientRect();
+        const vh = window.innerHeight;
+        if (rect.bottom > 0 && rect.top < vh) {
+          const offset = (rect.top + rect.height / 2 - vh / 2) / vh;
+          img.style.transform = 'translateY(' + (offset * -30) + 'px) scale(1.1)';
+        }
+      });
+      ticking = false;
+    });
+    ticking = true;
+  }
+}, { passive: true });
+
+// Blur-up: load images and replace placeholders
+document.querySelectorAll('img[data-src]').forEach(img => {
+  const fullSrc = img.getAttribute('data-src');
+  const fullImg = new Image();
+  fullImg.onload = () => {
+    img.src = fullSrc;
+    img.classList.add('loaded');
+  };
+  fullImg.src = fullSrc;
+});
+
+// Image fade-in on load
+document.querySelectorAll('.cinematic-bg img, .mosaic-item img, .panoramic img').forEach(img => {
+  if (img.complete) img.classList.add('loaded');
+  else img.addEventListener('load', () => img.classList.add('loaded'));
+});
+</script>
+
+</body>
+</html>
