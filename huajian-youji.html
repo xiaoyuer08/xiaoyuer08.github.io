@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>花间游记 · 穿越粉色花海的奇幻旅途</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@400;600;700;900&family=Ma+Shan+Zheng&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --pink: #E8729A;
+    --pink-light: #F5B8D0;
+    --pink-glow: rgba(232, 114, 154, 0.3);
+    --gold: #D4A05A;
+    --gold-light: #F0D8A8;
+    --dark: #0C0A14;
+    --dark-soft: #12101A;
+    --dark-card: rgba(18, 16, 26, 0.85);
+    --text: #F2EDF0;
+    --text-muted: #9A8FA0;
+    --teal: #5AB8C8;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Noto Serif SC', serif;
+    background: var(--dark);
+    color: var(--text);
+    overflow-x: hidden;
+    line-height: 1.8;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--dark); }
+  ::-webkit-scrollbar-thumb { background: var(--pink); border-radius: 2px; }
+
+  /* ===== CUSTOM CURSOR GLOW ===== */
+  .cursor-glow {
+    position: fixed;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--pink-glow) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: left 0.15s ease-out, top 0.15s ease-out;
+    opacity: 0;
+  }
+  body:hover .cursor-glow { opacity: 1; }
+
+  /* ===== LOADING SCREEN ===== */
+  .loader {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--dark);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 2rem;
+    transition: opacity 1.2s ease, visibility 1.2s ease;
+  }
+  .loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .loader-title {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    color: var(--pink);
+    letter-spacing: 0.2em;
+    opacity: 0;
+    animation: loaderFade 1.5s ease forwards;
+  }
+  .loader-sub {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    letter-spacing: 0.5em;
+    opacity: 0;
+    animation: loaderFade 1.5s ease 0.3s forwards;
+  }
+  .loader-bar {
+    width: 160px; height: 2px; background: rgba(232,114,154,0.15);
+    position: relative; overflow: hidden; border-radius: 1px;
+    opacity: 0; animation: loaderFade 1.5s ease 0.5s forwards;
+  }
+  .loader-bar::after {
+    content: ''; position: absolute; left: -100%; top: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, var(--pink), transparent);
+    animation: loaderSlide 1.8s ease-in-out infinite;
+  }
+  @keyframes loaderFade { to { opacity: 1; } }
+  @keyframes loaderSlide { 0% { left: -100%; } 100% { left: 100%; } }
+
+
+
+  /* ===== NAV ===== */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 1.2rem 2.5rem;
+    display: flex; justify-content: space-between; align-items: center;
+    background: linear-gradient(to bottom, rgba(12,10,20,0.9), transparent);
+    transition: all 0.6s ease;
+    opacity: 0; animation: navIn 1s ease 2.5s forwards;
+  }
+  @keyframes navIn { to { opacity: 1; } }
+  nav.scrolled {
+    padding: 0.8rem 2.5rem;
+    background: rgba(12,10,20,0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(232,114,154,0.08);
+  }
+  .nav-brand {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.3rem;
+    color: var(--pink);
+    letter-spacing: 0.2em;
+  }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    color: var(--text-muted); text-decoration: none;
+    font-size: 0.75rem; letter-spacing: 0.12em;
+    transition: color 0.4s; position: relative;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0;
+    width: 0; height: 1px; background: var(--pink);
+    transition: width 0.3s;
+  }
+  .nav-links a:hover, .nav-links a.active { color: var(--pink); }
+  .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+  /* ===== HERO ===== */
+  .hero {
+    position: relative;
+    height: 100vh; min-height: 700px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .hero-bg { position: absolute; inset: 0; }
+  .hero-bg img {
+    width: 100%; height: 100%; object-fit: cover;
+    opacity: 0; animation: heroImgIn 2.5s ease 1.8s forwards;
+  }
+  @keyframes heroImgIn {
+    from { opacity: 0; transform: scale(1.12); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 50%, rgba(232,114,154,0.1) 0%, transparent 60%),
+      linear-gradient(to bottom, rgba(12,10,20,0.35) 0%, rgba(12,10,20,0.15) 25%, rgba(12,10,20,0.05) 50%, rgba(12,10,20,0.6) 80%, rgba(12,10,20,1) 100%);
+  }
+  .hero-content { position: relative; z-index: 2; text-align: center; padding: 0 2rem; max-width: 800px; }
+  .hero-sub {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 0.8rem; letter-spacing: 0.6em;
+    color: var(--pink-light);
+    margin-bottom: 1.5rem;
+    opacity: 0; animation: fadeUp 1.2s ease 2.5s forwards;
+  }
+  .hero-title {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: clamp(4rem, 10vw, 9rem);
+    font-weight: 400; line-height: 1.2;
+    letter-spacing: 0.1em;
+    color: var(--text);
+    text-shadow: 0 0 100px var(--pink-glow);
+    opacity: 0; animation: fadeUp 1.5s ease 2.8s forwards;
+  }
+  .hero-line {
+    display: block; width: 60px; height: 1px;
+    background: linear-gradient(to right, transparent, var(--pink), transparent);
+    margin: 2rem auto;
+    opacity: 0; animation: fadeUp 1.2s ease 3.1s forwards;
+  }
+  .hero-desc {
+    font-size: 1rem; color: var(--text-muted);
+    letter-spacing: 0.15em;
+    max-width: 500px; margin: 0 auto;
+    opacity: 0; animation: fadeUp 1.2s ease 3.3s forwards;
+  }
+  .hero-scroll {
+    position: absolute; bottom: 2.5rem; left: 50%;
+    transform: translateX(-50%); z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
+    opacity: 0; animation: fadeUp 1.2s ease 3.8s forwards;
+  }
+  .hero-scroll span { display: block; font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.3em; }
+  .hero-scroll-line {
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, var(--pink), transparent);
+    animation: scrollBreath 2.5s ease-in-out infinite;
+  }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes scrollBreath { 0%, 100% { opacity: 0.2; transform: scaleY(0.5); } 50% { opacity: 0.8; transform: scaleY(1); } }
+
+  /* ===== CHAPTER / TIMELINE SECTION ===== */
+  .chapter {
+    position: relative; min-height: 100vh;
+    display: flex; align-items: center;
+    overflow: hidden;
+  }
+  .chapter-bg { position: absolute; inset: 0; }
+  .chapter-bg img {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: brightness(0.85) saturate(1.1);
+    transition: transform 15s ease;
+  }
+  .chapter:hover .chapter-bg img { transform: scale(1.04); }
+  .chapter-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(105deg, rgba(12,10,20,0.88) 0%, rgba(12,10,20,0.72) 35%, rgba(12,10,20,0.25) 60%, rgba(12,10,20,0.15) 80%, rgba(12,10,20,0.45) 100%);
+  }
+  .chapter-content { position: relative; z-index: 2; max-width: 560px; padding: 5rem 5vw; }
+  .chapter-number {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 0.65rem; letter-spacing: 0.5em;
+    color: var(--pink); opacity: 0.6;
+    margin-bottom: 1.8rem;
+  }
+  .chapter-title {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: clamp(2rem, 4.5vw, 3.2rem);
+    font-weight: 400; line-height: 1.3;
+    letter-spacing: 0.08em;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+  .chapter-divider { width: 40px; height: 1px; background: var(--pink); margin-bottom: 1.5rem; opacity: 0.6; }
+  .chapter-text {
+    font-size: 0.92rem; color: var(--text-muted);
+    line-height: 2.1; letter-spacing: 0.05em;
+  }
+  .chapter-tags { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 2rem; }
+  .ctag {
+    padding: 0.35rem 0.9rem;
+    border: 1px solid rgba(232,114,154,0.25);
+    border-radius: 2px; font-size: 0.7rem;
+    color: var(--pink-light); letter-spacing: 0.1em;
+  }
+
+  /* Right variant */
+  .chapter.right .chapter-overlay {
+    background: linear-gradient(255deg, rgba(12,10,20,0.88) 0%, rgba(12,10,20,0.72) 35%, rgba(12,10,20,0.25) 60%, rgba(12,10,20,0.15) 80%, rgba(12,10,20,0.45) 100%);
+  }
+  .chapter.right .chapter-content { margin-left: auto; text-align: right; }
+  .chapter.right .chapter-divider { margin-left: auto; }
+  .chapter.right .chapter-tags { justify-content: flex-end; }
+
+  /* Center variant */
+  .chapter.center .chapter-overlay {
+    background: radial-gradient(ellipse at center, rgba(12,10,20,0.12) 0%, rgba(12,10,20,0.72) 70%), linear-gradient(to bottom, rgba(12,10,20,0.25) 0%, rgba(12,10,20,0.65) 100%);
+  }
+  .chapter.center .chapter-content { max-width: 620px; margin: 0 auto; text-align: center; }
+  .chapter.center .chapter-divider { margin-left: auto; margin-right: auto; }
+  .chapter.center .chapter-tags { justify-content: center; }
+
+  /* ===== MOSAIC GALLERY ===== */
+  .mosaic { position: relative; padding: 0; overflow: hidden; }
+  .mosaic-header { text-align: center; padding: 5rem 2rem 3.5rem; max-width: 650px; margin: 0 auto; }
+  .mosaic-header-title {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--text);
+    letter-spacing: 0.1em;
+  }
+  .mosaic-header-text {
+    font-size: 0.88rem; color: var(--text-muted);
+    letter-spacing: 0.08em; margin-top: 1rem;
+  }
+  .mosaic-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 50vh);
+  }
+  .mosaic-item {
+    position: relative; overflow: hidden; cursor: pointer;
+    transition: transform 0.4s ease;
+  }
+  .mosaic-item img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 1.2s ease, filter 0.6s ease;
+    filter: brightness(0.85) saturate(1.1);
+  }
+  .mosaic-item:hover img { transform: scale(1.08); filter: brightness(1) saturate(1.2); }
+  .mosaic-item:nth-child(1) { grid-column: span 3; }
+  .mosaic-item:nth-child(2) { grid-column: span 3; }
+  .mosaic-item:nth-child(3) { grid-column: span 3; }
+  .mosaic-item-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(12,10,20,0.55) 0%, transparent 50%);
+    transition: background 0.5s;
+  }
+  .mosaic-item:hover .mosaic-item-overlay {
+    background: linear-gradient(to top, rgba(12,10,20,0.3) 0%, transparent 40%);
+  }
+  .mosaic-item-label {
+    position: absolute; bottom: 1.8rem; left: 1.8rem;
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.15rem; letter-spacing: 0.12em;
+    color: var(--text); opacity: 0;
+    transform: translateY(12px);
+    transition: all 0.5s ease;
+  }
+  .mosaic-item:hover .mosaic-item-label { opacity: 1; transform: translateY(0); }
+  .mosaic-item-tag {
+    display: block; font-size: 0.6rem;
+    color: var(--pink); letter-spacing: 0.25em;
+    margin-top: 0.3rem; opacity: 0.7;
+    font-family: 'ZCOOL XiaoWei', serif;
+  }
+
+  /* ===== LIGHTBOX ===== */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 9000;
+    background: rgba(12,10,20,0.95);
+    backdrop-filter: blur(30px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+  }
+  .lightbox.active { opacity: 1; visibility: visible; }
+  .lightbox img {
+    max-width: 90vw; max-height: 85vh;
+    object-fit: contain; border-radius: 4px;
+    box-shadow: 0 0 80px var(--pink-glow);
+    transform: scale(0.9);
+    transition: transform 0.5s ease;
+  }
+  .lightbox.active img { transform: scale(1); }
+  .lightbox-close {
+    position: absolute; top: 2rem; right: 2.5rem;
+    width: 40px; height: 40px;
+    border: 1px solid rgba(232,114,154,0.3);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text); font-size: 1.2rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s;
+  }
+  .lightbox-close:hover { border-color: var(--pink); color: var(--pink); }
+  .lightbox-nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 50px; height: 50px;
+    border: 1px solid rgba(232,114,154,0.2);
+    border-radius: 50%;
+    background: rgba(12,10,20,0.6);
+    color: var(--text); font-size: 1.5rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s;
+  }
+  .lightbox-nav:hover { border-color: var(--pink); color: var(--pink); }
+  .lightbox-prev { left: 2rem; }
+  .lightbox-next { right: 2rem; }
+  .lightbox-counter {
+    position: absolute; bottom: 2rem; left: 50%;
+    transform: translateX(-50%);
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 0.8rem; color: var(--text-muted);
+    letter-spacing: 0.2em;
+  }
+
+  /* ===== QUOTE SECTION ===== */
+  .quote-section {
+    position: relative; min-height: 65vh;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--dark-soft); overflow: hidden;
+  }
+  .quote-glow {
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(232,114,154,0.06) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: glowPulse 6s ease-in-out infinite;
+  }
+  @keyframes glowPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+    50% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+  }
+  .quote-content {
+    position: relative; z-index: 2;
+    text-align: center; max-width: 700px; padding: 4rem 2rem;
+  }
+  .quote-mark {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 4rem; color: var(--pink); opacity: 0.3;
+    line-height: 1; margin-bottom: 0.8rem;
+  }
+  .quote-text {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: clamp(1.2rem, 2.8vw, 1.8rem);
+    letter-spacing: 0.12em; line-height: 2;
+    color: var(--text); margin-bottom: 1.8rem;
+  }
+  .quote-author {
+    font-size: 0.78rem; color: var(--pink);
+    letter-spacing: 0.3em;
+  }
+
+  /* ===== PANORAMIC DIVIDER ===== */
+  .panoramic {
+    position: relative; height: 55vh; min-height: 380px; overflow: hidden;
+  }
+  .panoramic img {
+    width: 100%; height: 100%; object-fit: cover; object-position: center 30%;
+    transition: transform 12s ease;
+  }
+  .panoramic:hover img { transform: scale(1.03); }
+  .panoramic-overlay {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(to bottom, var(--dark) 0%, transparent 20%, transparent 80%, var(--dark) 100%),
+      linear-gradient(to right, rgba(12,10,20,0.3) 0%, transparent 25%, transparent 75%, rgba(12,10,20,0.3) 100%);
+  }
+  .panoramic-text {
+    position: absolute; bottom: 2.5rem; left: 50%;
+    transform: translateX(-50%); z-index: 2;
+    text-align: center; white-space: nowrap;
+  }
+  .panoramic-text p {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: clamp(1rem, 2vw, 1.4rem);
+    letter-spacing: 0.3em; color: var(--pink-light);
+    text-shadow: 0 0 30px rgba(0,0,0,0.8);
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    position: relative; padding: 5rem 2.5rem 2.5rem;
+    text-align: center; background: var(--dark);
+  }
+  .footer-glow {
+    position: absolute; top: -80px; left: 50%;
+    transform: translateX(-50%);
+    width: 300px; height: 180px;
+    background: radial-gradient(ellipse, rgba(232,114,154,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .footer-symbol {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.2rem; color: var(--pink);
+    margin-bottom: 1.2rem; opacity: 0.4;
+    letter-spacing: 0.5em;
+  }
+  .footer-brand {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.8rem; color: var(--pink);
+    letter-spacing: 0.2em; margin-bottom: 0.8rem;
+  }
+  .footer-text {
+    font-size: 0.75rem; color: var(--text-muted);
+    letter-spacing: 0.15em; line-height: 2.2;
+  }
+  .footer-line {
+    width: 30px; height: 1px; background: var(--pink);
+    opacity: 0.3; margin: 1.8rem auto 1.2rem;
+  }
+  .footer-copy {
+    font-size: 0.65rem; color: var(--text-muted);
+    letter-spacing: 0.1em; opacity: 0.5;
+  }
+
+  /* ===== REVEAL ===== */
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity 1s ease, transform 1s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ===== TIMELINE DOT ===== */
+  .timeline-dot {
+    position: absolute;
+    width: 6px; height: 6px;
+    background: var(--pink);
+    border-radius: 50%;
+    z-index: 3;
+    box-shadow: 0 0 12px var(--pink-glow);
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 1024px) {
+    .chapter-content { padding: 4rem 3vw; }
+    .mosaic-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: 40vh 40vh 40vh; }
+    .mosaic-item:nth-child(1) { grid-column: span 3; }
+    .mosaic-item:nth-child(4) { grid-column: span 1; }
+  }
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .chapter { min-height: 85vh; }
+    .chapter-overlay, .chapter.right .chapter-overlay {
+      background: linear-gradient(to bottom, rgba(12,10,20,0.5) 0%, rgba(12,10,20,0.88) 50%, rgba(12,10,20,0.95) 100%) !important;
+    }
+    .chapter.right .chapter-content { margin-left: 0; text-align: left; }
+    .chapter.right .chapter-divider { margin-left: 0; }
+    .chapter.right .chapter-tags { justify-content: flex-start; }
+    .chapter-content { padding: 3rem 5vw; }
+    .mosaic-grid { grid-template-columns: 1fr; grid-template-rows: repeat(5, 40vh); }
+    .mosaic-item:nth-child(1), .mosaic-item:nth-child(4) { grid-column: span 1; }
+    .panoramic { height: 40vh; min-height: 280px; }
+    .panoramic-text { white-space: normal; max-width: 90%; }
+    .cursor-glow { display: none; }
+  }
+
+/* ===== FALLING PETALS ===== */
+.petal-container {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 9997;
+  overflow: hidden;
+}
+
+.petal {
+  position: absolute;
+  top: -80px;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.petal svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 4px rgba(232,114,154,0.25));
+}
+
+
+/* ===== MUSIC PLAYER ===== */
+.music-player {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(12, 10, 20, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(232, 114, 154, 0.15);
+  border-radius: 40px;
+  padding: 8px 16px 8px 10px;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.music-player:hover {
+  border-color: rgba(232, 114, 154, 0.35);
+}
+
+.music-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--pink);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s, transform 0.2s;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+}
+.music-btn:hover {
+  background: #d4608a;
+  transform: scale(1.08);
+}
+.music-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: #fff;
+}
+
+.music-label {
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+
+.music-volume {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 72px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(232, 114, 154, 0.25);
+  outline: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.music-volume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--pink);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.music-volume::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+.music-volume::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: none;
+  border-radius: 50%;
+  background: var(--pink);
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .music-player {
+    bottom: 16px;
+    right: 16px;
+    padding: 6px 12px 6px 8px;
+    gap: 8px;
+  }
+  .music-volume { width: 50px; }
+  .music-label { display: none; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- Cursor Glow -->
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<!-- Loading Screen -->
+<div class="loader" id="loader">
+  <div class="loader-title">花间游记</div>
+  <div class="loader-sub">WANDERING IN BLOSSOMS</div>
+  <div class="loader-bar"></div>
+</div>
+
+<!-- Falling Petals -->
+
+<!-- Nav -->
+<nav id="nav">
+  <div class="nav-brand">花间游记</div>
+  <ul class="nav-links">
+    <li><a href="#hero">序幕</a></li>
+    <li><a href="#ch1">相遇</a></li>
+    <li><a href="#ch2">同行</a></li>
+    <li><a href="#gallery">光影</a></li>
+    <li><a href="#ch3">远眺</a></li>
+    <li><a href="#ch4">归途</a></li>
+  </ul>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="hero">
+  <div class="hero-bg">
+    <img src="images/huajian/hero1.jpg" alt="花间游记 · 粉色花海">
+  </div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="hero-sub">WANDERING IN BLOSSOMS</p>
+    <h1 class="hero-title">花间游记</h1>
+    <div class="hero-line"></div>
+    <p class="hero-desc">在那片无尽的粉色花海里，每一步都是一段故事</p>
+  </div>
+  <div class="hero-scroll">
+    <span>向下探索</span>
+    <div class="hero-scroll-line"></div>
+  </div>
+</section>
+
+<!-- ===== CHAPTER 1: 相遇 ===== -->
+<section class="chapter" id="ch1">
+  <div class="chapter-bg">
+    <img src="images/huajian/chapter_2.jpg" alt="花海相遇" loading="lazy">
+  </div>
+  <div class="chapter-overlay"></div>
+  <div class="chapter-content reveal">
+    <div class="chapter-number">壹</div>
+    <h2 class="chapter-title">花海中的初见</h2>
+    <div class="chapter-divider"></div>
+    <p class="chapter-text">暮色将临，粉色的花田在微风中轻轻摇曳。两个身影在花丛中偶然相遇，一个身着华裳遥望远方，一个凝立原地注视身旁的光景。命运的齿轮，就这样在花瓣间悄悄转动。</p>
+    <div class="chapter-tags">
+      <span class="ctag">花海</span>
+      <span class="ctag">暮色</span>
+      <span class="ctag">初见</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PANORAMIC DIVIDER ===== -->
+<div class="panoramic">
+  <img src="images/huajian/panoramic_3.jpg" alt="花田全景" loading="lazy">
+  <div class="panoramic-overlay"></div>
+  <div class="panoramic-text reveal"><p>踏过花径，风在耳边低语</p></div>
+</div>
+
+<!-- ===== CHAPTER 2: 同行 ===== -->
+<section class="chapter right" id="ch2">
+  <div class="chapter-bg">
+    <img src="images/huajian/chapter_4.jpg" alt="结伴同行" loading="lazy">
+  </div>
+  <div class="chapter-overlay"></div>
+  <div class="chapter-content reveal">
+    <div class="chapter-number">贰</div>
+    <h2 class="chapter-title">结伴而行</h2>
+    <div class="chapter-divider"></div>
+    <p class="chapter-text">远方的雪山在金色阳光中闪闪发光，两个人并肩站在花海之中。一个向前伸手，仿佛要抓住那道照亮天际的光。从此，旅途不再独行，风中有你，花间有歌。</p>
+    <div class="chapter-tags">
+      <span class="ctag">雪山</span>
+      <span class="ctag">日照</span>
+      <span class="ctag">同行</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== QUOTE 1 ===== -->
+<section class="quote-section">
+  <div class="quote-glow"></div>
+  <div class="quote-content reveal">
+    <div class="quote-mark">"</div>
+    <p class="quote-text">有些路，一个人走是孤独，两个人走，便成了冒险。</p>
+    <p class="quote-author">—— 花间手记</p>
+  </div>
+</section>
+
+<!-- ===== CHAPTER 2b: 同行续 ===== -->
+<section class="chapter" id="ch2b">
+  <div class="chapter-bg">
+    <img src="images/huajian/chapter_5.jpg" alt="花间笑语" loading="lazy">
+  </div>
+  <div class="chapter-overlay"></div>
+  <div class="chapter-content reveal">
+    <div class="chapter-number">叁</div>
+    <h2 class="chapter-title">花间笑语</h2>
+    <div class="chapter-divider"></div>
+    <p class="chapter-text">黄昏的光穿过云层，将整片花田染成暖金与粉红交织的梦境。两个人的身影在光影中若隐若现，身旁的小精灵也跟着欢快地飞舞。此刻，世界的温柔，全在这一帧画面里。</p>
+    <div class="chapter-tags">
+      <span class="ctag">黄昏</span>
+      <span class="ctag">精灵</span>
+      <span class="ctag">欢笑</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PANORAMIC DIVIDER 2 ===== -->
+<div class="panoramic">
+  <img src="images/huajian/panoramic_6.jpg" alt="湖畔花海" loading="lazy">
+  <div class="panoramic-overlay"></div>
+  <div class="panoramic-text reveal"><p>湖面映着天光，时间在水面碎成金粉</p></div>
+</div>
+
+<!-- ===== CHAPTER 2c: 并肩黄昏 ===== -->
+<section class="chapter right" id="ch2c">
+  <div class="chapter-bg">
+    <img src="images/huajian/chapter_7.jpg" alt="并肩黄昏" loading="lazy">
+  </div>
+  <div class="chapter-overlay"></div>
+  <div class="chapter-content reveal">
+    <div class="chapter-number">肆</div>
+    <h2 class="chapter-title">暮色并肩</h2>
+    <div class="chapter-divider"></div>
+    <p class="chapter-text">雾气从远处升腾，将山峦和花田都笼在柔纱之下。两个人静立花间，一黑一白，一冷一暖，像是光与影在暮色中完成了某种默契的约定。无需言语，并肩便是最美的回答。</p>
+    <div class="chapter-tags">
+      <span class="ctag">雾岚</span>
+      <span class="ctag">暮色</span>
+      <span class="ctag">并肩</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MOSAIC GALLERY ===== -->
+<section class="mosaic" id="gallery">
+  <div class="mosaic-header reveal">
+    <h2 class="mosaic-header-title">光影瞬间</h2>
+    <p class="mosaic-header-text">那些来不及说出口的，都被花悄悄收进了画框</p>
+  </div>
+  <div class="mosaic-grid">
+    <div class="mosaic-item" data-index="0">
+      <img src="images/huajian/mosaic_8.jpg" alt="牵手漫步" loading="lazy">
+      <div class="mosaic-item-overlay"></div>
+      <div class="mosaic-item-label">牵手漫步<span class="mosaic-item-tag">HAND IN HAND</span></div>
+    </div>
+    <div class="mosaic-item" data-index="1">
+      <img src="images/huajian/mosaic_牵手漫步.jpg" alt="花海" loading="lazy">
+      <div class="mosaic-item-overlay"></div>
+      <div class="mosaic-item-label">花海<span class="mosaic-item-tag">FIELD OF BLOSSOMS</span></div>
+    </div>
+<div class="mosaic-item" data-index="2">
+      <img src="images/huajian/mosaic_花海_1.jpg" alt="夕阳携手" loading="lazy">
+      <div class="mosaic-item-overlay"></div>
+      <div class="mosaic-item-label">夕阳携手<span class="mosaic-item-tag">GOLDEN HOUR</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CHAPTER 3: 远眺 ===== -->
+<section class="chapter center" id="ch3">
+  <div class="chapter-bg">
+    <img src="images/huajian/chapter_11.jpg" alt="崖边回眸" loading="lazy">
+  </div>
+  <div class="chapter-overlay"></div>
+  <div class="chapter-content reveal">
+    <div class="chapter-number">伍</div>
+    <h2 class="chapter-title">崖边回眸</h2>
+    <div class="chapter-divider"></div>
+    <p class="chapter-text">立于云端之上，伸手向天际。身后是无尽的苍穹与流云，面前是辽阔的未知。回眸一笑间，风掀起衣袂，带走所有的犹豫，只留下此刻的笃定与温柔。</p>
+    <div class="chapter-tags">
+      <span class="ctag">云端</span>
+      <span class="ctag">回眸</span>
+      <span class="ctag">自由</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PANORAMIC DIVIDER 3 ===== -->
+<div class="panoramic">
+  <img src="images/huajian/panoramic_12.jpg" alt="花间蝶舞" loading="lazy">
+  <div class="panoramic-overlay"></div>
+  <div class="panoramic-text reveal"><p>蝴蝶轻舞花间，每一瓣落花都是一句低语</p></div>
+</div>
+
+<!-- ===== CHAPTER 4: 归途 ===== -->
+<section class="chapter" id="ch4">
+  <div class="chapter-bg">
+    <img src="images/huajian/chapter_13.jpg" alt="花间蝶影" loading="lazy">
+  </div>
+  <div class="chapter-overlay"></div>
+  <div class="chapter-content reveal">
+    <div class="chapter-number">陆</div>
+    <h2 class="chapter-title">花间蝶影</h2>
+    <div class="chapter-divider"></div>
+    <p class="chapter-text">蓝蝶轻落指尖，像是花海送来的信笺。粉色双马尾在风中飘散，她微微侧首，将整个春天的温柔都收进了目光。这一刻，连时间都放慢了脚步，只为记住这朵花开的瞬间。</p>
+    <div class="chapter-tags">
+      <span class="ctag">蝴蝶</span>
+      <span class="ctag">花间</span>
+      <span class="ctag">温柔</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CHAPTER 4b: 归途续 ===== -->
+<section class="chapter right" id="ch4b">
+  <div class="chapter-bg">
+    <img src="images/huajian/chapter_陆.jpg" alt="雾隐楼阁" loading="lazy">
+  </div>
+  <div class="chapter-overlay"></div>
+  <div class="chapter-content reveal">
+    <div class="chapter-number">柒</div>
+    <h2 class="chapter-title">雾隐楼阁</h2>
+    <div class="chapter-divider"></div>
+    <p class="chapter-text">远山如墨，楼阁隐于晨雾之中。万籁俱寂，只有风穿过古树的低吟。旅途终有归处，而归途的风景，同样值得铭记。回头看，花田已在脚下，而前方，是新的黎明。</p>
+    <div class="chapter-tags">
+      <span class="ctag">楼阁</span>
+      <span class="ctag">晨雾</span>
+      <span class="ctag">归途</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== QUOTE 2 ===== -->
+<section class="quote-section">
+  <div class="quote-glow"></div>
+  <div class="quote-content reveal">
+    <div class="quote-mark">"</div>
+    <p class="quote-text">旅途的意义，不在于走了多远，而在于身边的人，和沿途的花。</p>
+    <p class="quote-author">—— 花间手记 · 终章</p>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-glow"></div>
+  <div class="footer-symbol">✦</div>
+  <div class="footer-brand">花间游记</div>
+  <p class="footer-text">粉色花海中的每一步，都是写给时间的情书</p>
+  <div class="footer-line"></div>
+  <p class="footer-copy">WANDERING IN BLOSSOMS · 2026</p>
+</footer>
+
+<!-- ===== LIGHTBOX ===== -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lbClose">✕</button>
+  <button class="lightbox-nav lightbox-prev" id="lbPrev">‹</button>
+  <button class="lightbox-nav lightbox-next" id="lbNext">›</button>
+  <img id="lbImg" src="" alt="大图预览">
+  <div class="lightbox-counter" id="lbCounter"></div>
+</div>
+
+<script>
+// ===== LOADING SCREEN =====
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('loader').classList.add('hidden');
+  }, 2200);
+});
+
+// ===== CURSOR GLOW =====
+const cursorGlow = document.getElementById('cursorGlow');
+document.addEventListener('mousemove', (e) => {
+  cursorGlow.style.left = e.clientX + 'px';
+  cursorGlow.style.top = e.clientY + 'px';
+});
+
+
+
+// ===== NAV SCROLL + ACTIVE =====
+const nav = document.getElementById('nav');
+const links = document.querySelectorAll('.nav-links a');
+const secs = document.querySelectorAll('section[id]');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 80);
+  const y = window.scrollY + window.innerHeight * 0.35;
+  let cur = '';
+  secs.forEach(s => { if (y > s.offsetTop) cur = s.id; });
+  links.forEach(a => {
+    const href = a.getAttribute('href').substring(1);
+    a.classList.toggle('active', href === cur);
+  });
+});
+
+// ===== SMOOTH SCROLL =====
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+// ===== REVEAL ON SCROLL =====
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+reveals.forEach(el => observer.observe(el));
+
+// ===== PARALLAX ON CHAPTER BACKGROUNDS =====
+const chapterBgs = document.querySelectorAll('.chapter-bg img, .hero-bg img');
+let ticking = false;
+window.addEventListener('scroll', () => {
+  if (!ticking) {
+    requestAnimationFrame(() => {
+      chapterBgs.forEach(img => {
+        const section = img.closest('.chapter, .hero');
+        if (!section) return;
+        const rect = section.getBoundingClientRect();
+        const vh = window.innerHeight;
+        if (rect.bottom > 0 && rect.top < vh) {
+          const offset = (rect.top + rect.height / 2 - vh / 2) / vh;
+          img.style.transform = 'translateY(' + (offset * -25) + 'px) scale(1.1)';
+        }
+      });
+      ticking = false;
+    });
+    ticking = true;
+  }
+}, { passive: true });
+
+// ===== LIGHTBOX =====
+const mosaicItems = document.querySelectorAll('.mosaic-item');
+const lightbox = document.getElementById('lightbox');
+const lbImg = document.getElementById('lbImg');
+const lbCounter = document.getElementById('lbCounter');
+const galleryImgs = Array.from(mosaicItems).map(item => item.querySelector('img').src);
+let currentLbIndex = 0;
+
+function openLightbox(index) {
+  currentLbIndex = index;
+  lbImg.src = galleryImgs[index];
+  lbCounter.textContent = (index + 1) + ' / ' + galleryImgs.length;
+  lightbox.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  lightbox.classList.remove('active');
+  document.body.style.overflow = '';
+}
+function nextLb() { openLightbox((currentLbIndex + 1) % galleryImgs.length); }
+function prevLb() { openLightbox((currentLbIndex - 1 + galleryImgs.length) % galleryImgs.length); }
+
+mosaicItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const idx = parseInt(item.dataset.index);
+    openLightbox(idx);
+  });
+});
+
+document.getElementById('lbClose').addEventListener('click', closeLightbox);
+document.getElementById('lbNext').addEventListener('click', nextLb);
+document.getElementById('lbPrev').addEventListener('click', prevLb);
+
+lightbox.addEventListener('click', (e) => {
+  if (e.target === lightbox) closeLightbox();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (!lightbox.classList.contains('active')) return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowRight') nextLb();
+  if (e.key === 'ArrowLeft') prevLb();
+});
+</script>
+
+<script>
+/* ===== REALISTIC PETAL FALLING ===== */
+(function() {
+  const container = document.createElement('div');
+  container.className = 'petal-container';
+  document.body.appendChild(container);
+
+  /* 不同花瓣形状 (SVG paths) - 模拟真实花瓣 */
+  const petalShapes = [
+    /* 椭圆花瓣 - 樱花 */
+    '<svg viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg"><path d="M20 2 C28 8, 38 20, 36 34 C34 44, 26 50, 20 50 C14 50, 6 44, 4 34 C2 20, 12 8, 20 2Z" fill="COLOR" opacity="0.85"/><path d="M20 8 C22 16, 24 28, 20 42 C16 28, 18 16, 20 8Z" fill="VEIN" opacity="0.3"/><path d="M12 20 C16 24, 18 30, 17 36" stroke="VEIN" stroke-width="0.5" fill="none" opacity="0.2"/><path d="M28 20 C24 24, 22 30, 23 36" stroke="VEIN" stroke-width="0.5" fill="none" opacity="0.2"/></svg>',
+    /* 心形花瓣 */
+    '<svg viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg"><path d="M20 48 C8 36, 0 22, 4 12 C8 2, 16 0, 20 8 C24 0, 32 2, 36 12 C40 22, 32 36, 20 48Z" fill="COLOR" opacity="0.8"/><path d="M20 10 L20 44" stroke="VEIN" stroke-width="0.5" fill="none" opacity="0.25"/><path d="M14 18 C16 22, 18 28, 19 34" stroke="VEIN" stroke-width="0.4" fill="none" opacity="0.15"/><path d="M26 18 C24 22, 22 28, 21 34" stroke="VEIN" stroke-width="0.4" fill="none" opacity="0.15"/></svg>',
+    /* 圆润花瓣 - 桃花 */
+    '<svg viewBox="0 0 44 52" xmlns="http://www.w3.org/2000/svg"><path d="M22 4 C32 4, 42 14, 42 28 C42 42, 32 52, 22 52 C12 52, 2 42, 2 28 C2 14, 12 4, 22 4Z" fill="COLOR" opacity="0.82"/><ellipse cx="22" cy="18" rx="8" ry="12" fill="HIGHLIGHT" opacity="0.2"/><path d="M22 10 L22 48" stroke="VEIN" stroke-width="0.5" fill="none" opacity="0.2"/></svg>',
+    /* 尖花瓣 - 梅花 */
+    '<svg viewBox="0 0 36 56" xmlns="http://www.w3.org/2000/svg"><path d="M18 2 C22 6, 34 18, 34 30 C34 42, 28 54, 18 56 C8 54, 2 42, 2 30 C2 18, 14 6, 18 2Z" fill="COLOR" opacity="0.78"/><path d="M18 8 L18 50" stroke="VEIN" stroke-width="0.5" fill="none" opacity="0.2"/><path d="M10 20 C14 26, 16 34, 17 40" stroke="VEIN" stroke-width="0.4" fill="none" opacity="0.15"/><path d="M26 20 C22 26, 20 34, 19 40" stroke="VEIN" stroke-width="0.4" fill="none" opacity="0.15"/></svg>',
+    /* 宽花瓣 - 牡丹 */
+    '<svg viewBox="0 0 50 48" xmlns="http://www.w3.org/2000/svg"><path d="M25 4 C38 4, 48 14, 48 24 C48 36, 38 46, 25 48 C12 46, 2 36, 2 24 C2 14, 12 4, 25 4Z" fill="COLOR" opacity="0.75"/><ellipse cx="25" cy="20" rx="12" ry="14" fill="HIGHLIGHT" opacity="0.15"/><path d="M25 8 L25 44" stroke="VEIN" stroke-width="0.6" fill="none" opacity="0.2"/><path d="M14 16 C18 22, 20 30, 22 38" stroke="VEIN" stroke-width="0.4" fill="none" opacity="0.12"/><path d="M36 16 C32 22, 30 30, 28 38" stroke="VEIN" stroke-width="0.4" fill="none" opacity="0.12"/></svg>',
+  ];
+
+  const petalColors = [
+    { color: '#F5B8D0', vein: '#E8729A', highlight: '#FFFFFF' },
+    { color: '#FADCE6', vein: '#F0A0C0', highlight: '#FFFFFF' },
+    { color: '#F2A0B8', vein: '#D4608A', highlight: '#FFE0EE' },
+    { color: '#F8C8D8', vein: '#E888A8', highlight: '#FFFFFF' },
+    { color: '#FFD6E0', vein: '#F5A0B8', highlight: '#FFFFFF' },
+    { color: '#E8A0B8', vein: '#D07090', highlight: '#FFD0E0' },
+    { color: '#F0C0D0', vein: '#E07898', highlight: '#FFF0F5' },
+  ];
+
+  function createPetal() {
+    const el = document.createElement('div');
+    el.className = 'petal';
+
+    const shapeIdx = Math.floor(Math.random() * petalShapes.length);
+    const colorSet = petalColors[Math.floor(Math.random() * petalColors.length)];
+
+    const size = 14 + Math.random() * 22;
+    el.style.width = size + 'px';
+    el.style.height = (size * 1.2) + 'px';
+
+    let svg = petalShapes[shapeIdx];
+    svg = svg.replace(/COLOR/g, colorSet.color);
+    svg = svg.replace(/VEIN/g, colorSet.vein);
+    svg = svg.replace(/HIGHLIGHT/g, colorSet.highlight);
+    el.innerHTML = svg;
+
+    const startX = Math.random() * window.innerWidth;
+    const swayAmplitude = 60 + Math.random() * 100;
+    const swayFrequency = 0.001 + Math.random() * 0.002;
+    const fallSpeed = 0.6 + Math.random() * 1.2;
+    const rotSpeed = (Math.random() - 0.5) * 2;
+    const tiltAngle = (Math.random() - 0.5) * 40;
+    const initialRot = Math.random() * 360;
+    const opacity = 0.4 + Math.random() * 0.5;
+    const delay = Math.random() * 0.3;
+
+    el.style.left = startX + 'px';
+    el.style.opacity = '0';
+    el.style.transform = 'rotateZ(' + initialRot + 'deg) rotateY(' + tiltAngle + 'deg) scale(' + (0.8 + Math.random() * 0.4) + ')';
+
+    container.appendChild(el);
+
+    let startTime = null;
+    let y = -80;
+    let currentX = startX;
+
+    function animate(timestamp) {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+
+      if (elapsed < delay * 1000) {
+        requestAnimationFrame(animate);
+        return;
+      }
+
+      const t = (elapsed - delay * 1000) / 1000;
+
+      y += fallSpeed;
+      currentX = startX + Math.sin(t * swayFrequency * 1000 + startX * 0.01) * swayAmplitude + Math.sin(t * 1.5) * 15;
+
+      const currentRot = initialRot + t * rotSpeed * 60;
+      const wobble = Math.sin(t * 2) * 8;
+      const perspective = Math.cos(t * 0.8) * 30;
+      const fadeIn = Math.min(1, t * 3);
+      const fadeOut = y > window.innerHeight - 100 ? Math.max(0, (window.innerHeight - y) / 100) : 1;
+
+      el.style.transform = 'translate3d(' + (currentX - startX) + 'px, ' + y + 'px, 0) rotateZ(' + (currentRot + wobble) + 'deg) rotateY(' + (tiltAngle + perspective) + 'deg) rotateX(' + (wobble * 0.5) + 'deg)';
+      el.style.opacity = (opacity * fadeIn * fadeOut).toString();
+
+      if (y < window.innerHeight + 80) {
+        requestAnimationFrame(animate);
+      } else {
+        el.remove();
+      }
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  /* 根据屏幕宽度动态调整花瓣数量 */
+  function getPetalsPerInterval() {
+    const w = window.innerWidth;
+    if (w < 600) return 1;
+    if (w < 1200) return 2;
+    return 3;
+  }
+
+  function spawnLoop() {
+    const count = getPetalsPerInterval();
+    for (let i = 0; i < count; i++) {
+      setTimeout(createPetal, Math.random() * 600);
+    }
+  }
+
+  spawnLoop();
+  setInterval(spawnLoop, 800);
+
+  /* 页面不可见时暂停 */
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      container.style.display = 'none';
+    } else {
+      container.style.display = '';
+    }
+  });
+})();
+</script>
+
+
+
+<!-- Music Player -->
+<div class="music-player" id="musicPlayer">
+  <button class="music-btn" id="musicToggle" title="播放/暂停">
+    <svg id="playIcon" viewBox="0 0 24 24"><polygon points="6,3 20,12 6,21"/></svg>
+    <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none"><rect x="5" y="3" width="4" height="18"/><rect x="15" y="3" width="4" height="18"/></svg>
+  </button>
+  <span class="music-label">晴天</span>
+  <input type="range" class="music-volume" id="musicVolume" min="0" max="100" value="40" title="音量">
+</div>
+
+<script>
+(function() {
+  var audio = new Audio('晴天.mp3');
+  audio.loop = true;
+  audio.volume = 0.4;
+  audio.preload = 'none';
+
+  var toggle = document.getElementById('musicToggle');
+  var playIcon = document.getElementById('playIcon');
+  var pauseIcon = document.getElementById('pauseIcon');
+  var volumeSlider = document.getElementById('musicVolume');
+  var playing = false;
+
+  toggle.addEventListener('click', function() {
+    if (playing) {
+      audio.pause();
+      playIcon.style.display = '';
+      pauseIcon.style.display = 'none';
+      playing = false;
+    } else {
+      audio.play().catch(function(){});
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = '';
+      playing = true;
+    }
+  });
+
+  volumeSlider.addEventListener('input', function() {
+    audio.volume = this.value / 100;
+  });
+})();
+</script>
+</body>
+</html>
