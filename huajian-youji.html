@@ -1158,7 +1158,6 @@ document.addEventListener('keydown', (e) => {
   var audio = new Audio('晴天.mp3');
   audio.loop = true;
   audio.volume = 0.4;
-  audio.preload = 'none';
 
   var toggle = document.getElementById('musicToggle');
   var playIcon = document.getElementById('playIcon');
@@ -1166,17 +1165,31 @@ document.addEventListener('keydown', (e) => {
   var volumeSlider = document.getElementById('musicVolume');
   var playing = false;
 
-  toggle.addEventListener('click', function() {
+  function startPlay() {
+    audio.play().then(function() {
+      playing = true;
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = '';
+    }).catch(function(){});
+  }
+
+  // 尝试自动播放
+  setTimeout(startPlay, 500);
+
+  // 如果被浏览器阻止，首次点击页面任意位置开始播放
+  document.addEventListener('click', function once() {
+    if (!playing) startPlay();
+  }, { once: true });
+
+  toggle.addEventListener('click', function(e) {
+    e.stopPropagation();
     if (playing) {
       audio.pause();
       playIcon.style.display = '';
       pauseIcon.style.display = 'none';
       playing = false;
     } else {
-      audio.play().catch(function(){});
-      playIcon.style.display = 'none';
-      pauseIcon.style.display = '';
-      playing = true;
+      startPlay();
     }
   });
 
