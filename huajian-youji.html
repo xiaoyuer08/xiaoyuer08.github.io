@@ -1197,46 +1197,114 @@ document.addEventListener('keydown', (e) => {
 
 <script>
 (function() {
-  var audio = new Audio('晴天.mp3');
-  audio.loop = true;
-  audio.volume = 0.4;
-
+  var audio = null;
   var toggle = document.getElementById('musicToggle');
   var playIcon = document.getElementById('playIcon');
   var pauseIcon = document.getElementById('pauseIcon');
   var volumeSlider = document.getElementById('musicVolume');
   var playing = false;
+  var userPaused = false;
+  var retryCount = 0;
+
+  function createAudio() {
+    if (audio) {
+      try { audio.pause(); } catch(e) {}
+      audio.src = '';
+      audio.load();
+    }
+    audio = new Audio('晴天.mp3');
+    audio.loop = true;
+    audio.volume = volumeSlider.value / 100;
+    audio.preload = 'auto';
+
+    audio.addEventListener('ended', function() {
+      // Loop failed, try again
+      audio.currentTime = 0;
+      audio.play().catch(function(){});
+    });
+
+    audio.addEventListener('pause', function() {
+      // Auto-resume if not paused by user
+      if (!userPaused && playing) {
+        setTimeout(function() {
+          if (!userPaused) {
+            audio.play().catch(function(){});
+          }
+        }, 200);
+      }
+    });
+
+    audio.addEventListener('error', function() {
+      retryCount++;
+      if (retryCount < 5) {
+        setTimeout(function() {
+          createAudio();
+          if (!userPaused) startPlay();
+        }, 1000);
+      }
+    });
+  }
 
   function startPlay() {
-    audio.play().then(function() {
-      playing = true;
-      playIcon.style.display = 'none';
-      pauseIcon.style.display = '';
-    }).catch(function(){});
+    if (!audio) createAudio();
+    var promise = audio.play();
+    if (promise && promise.then) {
+      promise.then(function() {
+        playing = true;
+        userPaused = false;
+        retryCount = 0;
+        playIcon.style.display = 'none';
+        pauseIcon.style.display = '';
+      }).catch(function() {
+        // Browser blocked autoplay, will retry on interaction
+      });
+    }
   }
+
+  function stopPlay() {
+    playing = false;
+    userPaused = true;
+    if (audio) {
+      audio.pause();
+    }
+    playIcon.style.display = '';
+    pauseIcon.style.display = 'none';
+  }
+
+  // 页面不可见时保持播放，可见时恢复
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && !userPaused && playing) {
+      if (audio && audio.paused) {
+        audio.play().catch(function(){});
+      }
+    }
+  });
 
   // 尝试自动播放
   setTimeout(startPlay, 500);
 
-  // 如果被浏览器阻止，首次点击页面任意位置开始播放
-  document.addEventListener('click', function once() {
-    if (!playing) startPlay();
+  // 首次点击开始播放
+  document.addEventListener('click', function onFirstClick() {
+    if (!playing) {
+      userPaused = false;
+      startPlay();
+    }
   }, { once: true });
 
   toggle.addEventListener('click', function(e) {
     e.stopPropagation();
     if (playing) {
-      audio.pause();
-      playIcon.style.display = '';
-      pauseIcon.style.display = 'none';
-      playing = false;
+      stopPlay();
     } else {
+      userPaused = false;
       startPlay();
     }
   });
 
   volumeSlider.addEventListener('input', function() {
-    audio.volume = this.value / 100;
+    if (audio) {
+      audio.volume = this.value / 100;
+    }
   });
 })();
 </script>
